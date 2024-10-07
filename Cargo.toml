@@ -8,7 +8,7 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/hodojek/lconvert"
 repository = "https://github.com/hodojek/lconvert"
-keywords = ["cli", "ffmpeg", "batch", "convert", "files", "extensions"]
+keywords = ["cli", "ffmpeg", "batch", "convert", "files"]
 categories = ["command-line-utilities"]
 exclude = ["/tests", "example.gif"]
 
