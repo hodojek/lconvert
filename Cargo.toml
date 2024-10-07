@@ -1,0 +1,58 @@
+[package]
+name = "lconvert"
+description = "A cli tool for converting multiple files (with different extensions) at once"
+version = "0.1.0"
+edition = "2021"
+authors = ["hodojek"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/hodojek/lconvert"
+repository = "https://github.com/hodojek/lconvert"
+keywords = ["cli", "ffmpeg", "batch", "convert", "files", "extensions"]
+categories = ["command-line-utilities"]
+exclude = ["/tests", "example.gif"]
+
+[dependencies]
+clap = { version = "4.5.19", features = ["derive"] }
+indicatif = "0.17.8"
+anyhow = "1.0.89"
+regex = "1.11.0"
+glob = "0.3.1"
+
+[dev-dependencies]
+assert_cmd = "2.0.14"
+predicates = "3.1.0"
+assert_fs = "1.1.1"
+blake3 = "1.5.4"
+
+[profile.dev]
+opt-level = 0 
+debug = true  
+rpath = false 
+lto = false   
+debug-assertions = true
+codegen-units = 16
+panic = "unwind"  
+incremental = true
+overflow-checks = true 
+
+[profile.release]
+opt-level = "s" 
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 16
+panic = "unwind"
+incremental = false
+overflow-checks = false
+
+[profile.test]
+opt-level = 0
+debug = 2
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 16
+incremental = true
+overflow-checks = true
