@@ -1,5 +1,6 @@
 # lconvert
 [![Crates.io Version](https://img.shields.io/crates/v/lconvert)](https://crates.io/crates/lconvert)
+[![Crates.io Total Downloads](https://img.shields.io/crates/d/lconvert)](https://crates.io/crates/lconvert)
 
 A cli tool that simplifies usage of FFmpeg for multiple files
 ## Features
