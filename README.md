@@ -1,6 +1,4 @@
-# lconvert
-[![Crates.io Version](https://img.shields.io/crates/v/lconvert)](https://crates.io/crates/lconvert)
-[![Crates.io Total Downloads](https://img.shields.io/crates/d/lconvert)](https://crates.io/crates/lconvert)
+# lconvert [![Crates.io Version](https://img.shields.io/crates/v/lconvert)](https://crates.io/crates/lconvert) [![Crates.io Total Downloads](https://img.shields.io/crates/d/lconvert)](https://crates.io/crates/lconvert)
 
 A cli tool that simplifies usage of FFmpeg for multiple files
 ## Features
@@ -19,10 +17,12 @@ Runs multiple FFmpeg instances at once for fast conversion time
 ### Progress bar
 And it has a progress bar, yes
 ## Requirements
-You will need ffmpeg and ffprobe executables downloaded and avalable through the PATH variable
+You will need ffmpeg and ffprobe executables [downloaded](https://www.ffmpeg.org/) and avalable through the PATH variable
 
-For now there are no binaries so you will also need [cargo](https://www.rust-lang.org/tools/install) to install lconvert
+You will need [cargo](https://www.rust-lang.org/tools/install) if you want to install lconvert from source (not needed for binary releases)
 ## Installation
+### Binary
+Download binary release for your os from [releases](https://github.com/hodojek/lconvert/releases)
 ### Install with cargo
 ```
 cargo install lconvert
