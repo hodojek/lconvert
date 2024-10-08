@@ -192,12 +192,13 @@ fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses:
 }
 
 fn main() -> anyhow::Result<()> {
-    let start_time = Instant::now();
+    let args: Arguments = Arguments::parse();
 
     assert_exists("ffmpeg")?;
     assert_exists("ffprobe")?;
 
-    let args: Arguments = Arguments::parse();
+    let start_time = Instant::now();
+
     let input_files: Vec<PathBuf> = args.get_glob_expanded_input_files();
 
     let output_directory: PathBuf = create_output_directory(
