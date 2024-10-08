@@ -10,7 +10,7 @@ homepage = "https://github.com/hodojek/lconvert"
 repository = "https://github.com/hodojek/lconvert"
 keywords = ["cli", "ffmpeg", "batch", "convert", "files"]
 categories = ["command-line-utilities"]
-exclude = ["/tests", "example.gif"]
+exclude = ["/tests", "example.gif", "/.github"]
 
 [dependencies]
 clap = { version = "4.5.19", features = ["derive"] }
