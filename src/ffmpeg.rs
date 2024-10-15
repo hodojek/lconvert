@@ -3,7 +3,7 @@ use std::io::Error;
 use std::path::PathBuf;
 use std::process::{Child, Output, Stdio};
 use std::str::from_utf8;
-use anyhow::Context;
+use which::which;
 
 #[derive(Debug)]
 pub enum FFmpegError<'a> {
@@ -41,11 +41,7 @@ pub struct FFmpegOptions {
 
 impl FFmpegOptions {
     pub fn new(input_file: PathBuf, output_file: PathBuf, allow_override: bool, options: Vec<String>) -> Self {
-        let duration = if let Ok(Some(duration)) = get_duration(&input_file) {
-            Some(duration)
-        } else {
-            None
-        };
+        let duration = get_duration(&input_file).unwrap_or(None); 
 
         Self { 
             input_file, 
@@ -73,8 +69,8 @@ impl FFmpegProcessStarted {
     pub fn finish(self) -> FFmpegProcessCompleted {
         FFmpegProcessCompleted {
             output: match self.child {
-                Ok(child) => { child.wait_with_output() },
-                Err(err) => { Err(err) },
+                Ok(child) => child.wait_with_output(),
+                Err(err) => Err(err),
             },
             options: self.options,
         }
@@ -136,13 +132,6 @@ pub fn spawn_ffmpeg(options: &FFmpegOptions) -> Result<Child, Error> {
     Ok(child)
 }
 
-pub fn assert_exists(executable: &str) -> Result<bool, anyhow::Error> {
-    Ok(std::process::Command::new(executable)
-        .arg("--version")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn().with_context(|| format!("could not spawn executable: '{executable}'. Make sure to include directory with the {executable} binary in your PATH variable"))?
-        .wait_with_output().with_context(|| format!("cound not get output from executable: '{executable}'"))?
-        .status
-        .success())
+pub fn assert_exists(executable: &str) -> Result<PathBuf, anyhow::Error> {
+    Ok(which(executable)?)
 }
