@@ -3,6 +3,7 @@ use std::io::Error;
 use std::path::PathBuf;
 use std::process::{Child, Output, Stdio};
 use std::str::from_utf8;
+use anyhow::Context;
 use which::which;
 
 #[derive(Debug)]
@@ -133,5 +134,7 @@ pub fn spawn_ffmpeg(options: &FFmpegOptions) -> Result<Child, Error> {
 }
 
 pub fn assert_exists(executable: &str) -> Result<PathBuf, anyhow::Error> {
-    Ok(which(executable)?)
+    Ok(which(executable)
+        .with_context(|| format!("{executable} could not be found! Make sure to add '/path/to/ffmpeg/bin' to the PATH variable"))?
+    )
 }
