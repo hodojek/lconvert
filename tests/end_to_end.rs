@@ -170,4 +170,32 @@ fn case_sensitivity() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn assert_ffmpeg_exists() -> Result<(), Box<dyn std::error::Error>> {
+    let input_dir = assert_fs::TempDir::new()?;
+    let output_dir = assert_fs::TempDir::new()?;
+
+    let input_file = input_dir.child("input.mp3");
+    input_file.write_file(get_test_file!("input.mp3"))?;
+
+    Command::cargo_bin(BIN_NAME)?
+        .args(["-d", output_dir.to_str().unwrap(), "-m", "mp3=mp3", "-y", input_file.to_str().unwrap()])
+        .assert()
+        .success();
+
+    Command::cargo_bin(BIN_NAME)?
+        .env("PATH", ".")
+        .args(["-d", output_dir.to_str().unwrap(), "-m", "mp3=mp3", "-y", input_file.to_str().unwrap()])
+        .assert()
+        .failure();
+
+    Command::cargo_bin(BIN_NAME)?
+        .env_remove("PATH")
+        .args(["-d", output_dir.to_str().unwrap(), "-m", "mp3=mp3", "-y", input_file.to_str().unwrap()])
+        .assert()
+        .failure();
+
+    Ok(())
+}
+
 // TODO: Add more tests
