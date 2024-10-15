@@ -13,11 +13,12 @@ categories = ["command-line-utilities"]
 exclude = ["/tests", "example.gif", "/.github"]
 
 [dependencies]
-clap = { version = "4.5.19", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }
 indicatif = "0.17.8"
 anyhow = "1.0.89"
 regex = "1.11.0"
 glob = "0.3.1"
+which = "6.0.3"
 
 [dev-dependencies]
 assert_cmd = "2.0.14"
