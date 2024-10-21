@@ -48,7 +48,7 @@ fn create_output_directory(output_directory: &Option<PathBuf>) -> Result<PathBuf
 }
 
 fn get_ffmpeg_options(
-    input_files: &Vec<PathBuf>, 
+    input_files: Vec<PathBuf>, 
     output_directory: &PathBuf, 
     extension_map: &ExtensionMap, 
     ffmpeg_str_options: &Vec<String>,
@@ -61,7 +61,7 @@ fn get_ffmpeg_options(
         if input_file.is_dir() {
             ffmpeg_options.extend(
                 get_ffmpeg_options(
-                    &read_dir(input_file)
+                    read_dir(&input_file)
                         .with_context(|| format!("cound not read directory: '{}'", input_file.display()))?
                         .collect::<Result<Vec<DirEntry>, _>>()
                         .with_context(|| format!("error while reading directory: '{}'", input_file.display()))?
@@ -110,7 +110,7 @@ fn get_ffmpeg_options(
         output_file.set_extension(&extension_map[input_extension]);
 
         ffmpeg_options.push(FFmpegOptions::new(
-            input_file.clone(), 
+            input_file, 
             output_file, 
             allow_override, 
             ffmpeg_str_options.clone()
@@ -206,7 +206,7 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     let ffmpeg_options: Vec<FFmpegOptions> = get_ffmpeg_options(
-        &input_files, 
+        input_files, 
         &output_directory, 
         &args.extension_map, 
         &args.ffmpeg_str_options,
