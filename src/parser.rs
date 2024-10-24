@@ -203,13 +203,13 @@ pub struct OutputPattern {
 }
 
 impl OutputPattern {
-    pub const FILE: &str = "{{file}}";
-    pub const STEM: &str = "{{stem}}";
-    pub const IN_EXT: &str = "{{in-ext}}";
-    pub const OUT_EXT: &str = "{{out-ext}}";
-    pub const TREE: &str = "{{tree}}";
-    pub const PARENT: &str = "{{parent}}";
-    pub const UNIQUE_SUFFIX: &str = "{{unique-suffix}}";
+    pub const FILE: &'static str = "{{file}}";
+    pub const STEM: &'static str = "{{stem}}";
+    pub const IN_EXT: &'static str = "{{in-ext}}";
+    pub const OUT_EXT: &'static str = "{{out-ext}}";
+    pub const TREE: &'static str = "{{tree}}";
+    pub const PARENT: &'static str = "{{parent}}";
+    pub const UNIQUE_SUFFIX: &'static str = "{{unique-suffix}}";
 
     pub fn new(pattern: PathBuf) -> Self {
         Self { pattern }
