@@ -128,13 +128,6 @@ pub struct Arguments {
     )]
     pub output: PathBuf,
 
-    /// Disables appending {{tree}}/{{file}} to output patterns with no placeholders
-    #[arg(
-        short = 'd',
-        long,
-    )]
-    pub disable_pattern_append: bool,
-
     /// Max number of concurent ffmpeg processes
     #[arg(
         short,
@@ -144,6 +137,14 @@ pub struct Arguments {
         default_value = "4",
     )]
     pub n_subprocesses: u32,
+
+    /// Disables appending {{tree}}/{{file}} to output patterns with no placeholders
+    #[arg(
+        short = 'd',
+        long,
+    )]
+    pub disable_pattern_append: bool,
+
 
     /// Make extension map case sensetive
     #[arg(
@@ -168,11 +169,11 @@ pub struct Arguments {
             "Custom ffmpeg options to apply to every file\n\n\
              Warning! Some options (such specifing output pipe) may result in upredictable beviour\n\n\
              Example:\
-             \n* 'lconvert -d out_dir -m wav=mp3 input_file.wav -- -ab 128KB'\
-             \n                                      Custom option ^^^^^^^^^\
-             \n  Expands to:\n\
-             \n  'ffmpeg -hide_banner -n -loglevel error -progress - -nostats -i input_file.wav -ab 128KB out_dir/input_file.mp3'\
-             \n                                                                   Custom option ^^^^^^^^^"
+             \n| 'lconvert -o out_dir -m wav=mp3 input_file.wav -- -ab 128KB'\
+             \n|                                     Custom option ^^^^^^^^^\
+             \n| Expands to:\n|\
+             \n| 'ffmpeg -hide_banner -n -loglevel error -progress - -nostats -i input_file.wav -ab 128KB out_dir/input_file.mp3'\
+             \n|                                                                  Custom option ^^^^^^^^^"
     )]
     pub ffmpeg_str_options: Vec<String>,
 }
