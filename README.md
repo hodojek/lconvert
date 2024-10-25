@@ -8,6 +8,9 @@ A cli tool that simplifies usage of FFmpeg for multiple files
 - files with different extensions to different extensions
 - files in directories
 
+### Output patterns
+You can control where the output files go with patterns like "outdir/{{out-ext}}/{{file}}".
+The placeholders in {{curly brackets}} will be replaced and a subdirectory for every output extension will be created with only the files that have that extension in it. See more placeholders with '--help'
 ### Custom FFmpeg options
 Allows you to apply FFmpeg options (such as changing bitrate, resolution, etc...) to multiple files at once 
 ### glob expansion
@@ -38,5 +41,8 @@ cd lconvert
 cargo build --release
 ```
 You will find lconvert executable in ./target/release directory
-## Example 
-<img src="https://github.com/hodojek/lconvert/blob/master/example.gif?raw=true">
+## Examples
+Simple
+<img src="https://github.com/hodojek/lconvert/blob/master/gifs/simple.gif?raw=true">
+Pattern
+<img src="https://github.com/hodojek/lconvert/blob/master/gifs/pattern.gif?raw=true">
