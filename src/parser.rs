@@ -280,8 +280,6 @@ impl OutputPattern {
                 let mut o = first.to_string_lossy().replace(Self::UNIQUE_SUFFIX, "");
                 let mut num = 1;
 
-                dbg!(&o);
-
                 while 
                     (second.is_some() && Path::new(&o).exists()) ||
                     (second.is_none() && (
@@ -293,8 +291,6 @@ impl OutputPattern {
                     o = first.to_string_lossy().replace(Self::UNIQUE_SUFFIX, &format!("_{}", num));
                     num += 1;
                 };
-
-                dbg!(&o);
 
                 output_file = if let Some(s) = second { Path::new(&o).join(s) } else { PathBuf::from(&o) };
 
