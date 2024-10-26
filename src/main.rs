@@ -9,12 +9,12 @@ use progress::{FFmpegProgress, OverallProgress};
 use ffmpeg::{assert_exists, FFmpegOptions, FFmpegProcessCompleted, FFmpegProcessStarted, FFMPEG_PATH, FFPROBE_PATH};
 use parser::{Arguments, ExtensionMap, get_longest_common_path, OutputPattern};
 
-struct FFmpegProcessWithProgress {
+struct FFmpegProcessWithProgress<'a> {
     process: FFmpegProcessStarted,
-    progress: FFmpegProgress,
+    progress: FFmpegProgress<'a>,
 }
 
-impl FFmpegProcessWithProgress {
+impl FFmpegProcessWithProgress<'_> {
     pub fn finish(self) -> FFmpegProcessCompleted {
         self.progress.finish();
         self.process.finish()
@@ -155,7 +155,10 @@ fn update_processes_until_one_finishes<'a>(processes: &'a mut Vec<FFmpegProcessW
 }
 
 fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses: u32) -> Vec<FFmpegProcessCompleted> {
-    let overall_progress = OverallProgress::new(ffmpeg_options.len() as u64);
+    let overall_progress = OverallProgress::new(
+        ffmpeg_options.iter().map(|x| x.duration.unwrap_or(1.0).floor() as u64).sum(),
+        ffmpeg_options.len() as u64
+    );
 
     let mut started_processes: Vec<FFmpegProcessWithProgress> = Vec::new();
     let mut completed_processes: Vec<FFmpegProcessCompleted> = Vec::new();
@@ -164,7 +167,7 @@ fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses:
         // if more processes than limit, wait until one finishes
         if started_processes.len() as u32 >= n_subprocesses { 
             let completed_process = update_processes_until_one_finishes(&mut started_processes);
-            overall_progress.update(&completed_process.get_error());
+            overall_progress.update_completed(&completed_process.get_error());
             completed_processes.push(completed_process);
         }
 
@@ -176,7 +179,7 @@ fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses:
 
     while !started_processes.is_empty() {
         let completed_process = update_processes_until_one_finishes(&mut started_processes);
-        overall_progress.update(&completed_process.get_error());
+        overall_progress.update_completed(&completed_process.get_error());
         completed_processes.push(completed_process);
     }
 
