@@ -2,7 +2,7 @@ mod progress;
 mod ffmpeg;
 mod parser;
 
-use std::{fs::{create_dir_all, read_dir, DirEntry}, io::{BufRead, BufReader}, path::PathBuf, time::Instant};
+use std::{fs::{create_dir_all, read_dir, DirEntry}, io::{BufRead, BufReader}, path::PathBuf, time::Instant, process::Child};
 use anyhow::Context;
 use clap::Parser;
 use progress::{FFmpegProgress, OverallProgress};
@@ -21,15 +21,16 @@ impl FFmpegProcessWithProgress {
     }
 }
 
-fn get_ffmpeg_options(input_files: Vec<PathBuf>,
-                      output_pattern: &OutputPattern,
-                      extension_map: &ExtensionMap,
-                      ffmpeg_str_options: &Vec<String>,
-                      case_sensitive: bool,
-                      allow_override: bool,
-                      disable_pattern_append: bool,
-                      tree: Option<PathBuf>) -> Result<Vec<FFmpegOptions>, anyhow::Error> 
-{
+fn get_ffmpeg_options(
+    input_files: Vec<PathBuf>,
+    output_pattern: &OutputPattern,
+    extension_map: &ExtensionMap,
+    ffmpeg_str_options: &Vec<String>,
+    case_sensitive: bool,
+    allow_override: bool,
+    disable_pattern_append: bool,
+    tree: Option<PathBuf>
+) -> Result<Vec<FFmpegOptions>, anyhow::Error> {
     let mut ffmpeg_options: Vec<FFmpegOptions> = Vec::new();
 
     for input_file in input_files {
@@ -106,37 +107,51 @@ fn create_hierarchy(ffmpeg_options: &Vec<FFmpegOptions>) -> Result<(), anyhow::E
     Ok(())
 }
 
-fn update_processes_until_one_finishes<'a>(processes: &'a mut Vec<FFmpegProcessWithProgress>) -> FFmpegProcessCompleted {
-    loop { for (i, process_with_progress) in processes.iter_mut().enumerate() {
-        match &mut process_with_progress.process.child {
-            Ok(child) => { match child.try_wait() { // Child exists
+fn update_progress(child: &mut Child, progress: &mut FFmpegProgress) {
+    if !progress.has_duration {
+        progress.update(None);
+        return;
+    }
+
+    let output = child.stdout.as_mut().unwrap();
+    let reader = BufReader::new(output);
+
+    for result in reader.lines() { 
+        if let Ok(line) = result {
+            if line.contains("out_time_ms") {
+                progress.update(Some(&line));
+                break;
+            }
+        }
+    };
+}
+
+fn update_process_with_progress<'a>(index: usize, process_with_progress: &'a mut FFmpegProcessWithProgress) -> Option<usize> {
+    match &mut process_with_progress.process.child {
+        Ok(child) => { 
+            match child.try_wait() { // Child exists
                 Ok(None) => { // Child is working
-                    let progress = &mut process_with_progress.progress;
-
-                    if !progress.has_duration {
-                        progress.update(None);
-                        continue;
-                    }
-
-                    let output = child.stdout.as_mut().unwrap();
-                    let reader = BufReader::new(output);
-
-                    for result in reader.lines() { if let Ok(line) = result {
-                        if line.contains("out_time_ms") {
-                            progress.update(Some(&line));
-                            break;
-                        }
-                    }}
+                    update_progress(child, &mut process_with_progress.progress);
+                    return None;
                 },
                 _ => { // Child finished or error attemting to acces
-                    return processes.remove(i).finish();
+                    return Some(index);
                 }
-            }},
-            Err(_) => { // Child did not start
-                return processes.remove(i).finish(); 
-            },
+        }},
+        Err(_) => { // Child did not start
+            return Some(index);
+        },
+    }
+}
+
+fn update_processes_until_one_finishes<'a>(processes: &'a mut Vec<FFmpegProcessWithProgress>) -> FFmpegProcessCompleted {
+    loop { 
+        for (i, process_with_progress) in processes.iter_mut().enumerate() {
+            if let Some(finished_process_index) = update_process_with_progress(i, process_with_progress) {
+                return processes.remove(finished_process_index).finish();
+            };
         }
-    }}
+    }
 }
 
 fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses: u32) -> Vec<FFmpegProcessCompleted> {

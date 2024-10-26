@@ -83,7 +83,7 @@ pub struct Arguments {
              \n* 'jpeg=png,mp4=avi' will convert .jpeg to .png and .mp4 to .avi\
              \n* 'jpeg' is a wildcard and will try to convert all input files to .jpeg\
              \n* 'mp3=ogg,jpeg,mp4=avi' there may be exactly one wildcard",
-        value_name = "IN-EXT=OUT-EXT",
+        value_name = "IN_EXT=OUT_EXT",
         value_parser = parser_extension_map(), 
     )]
     pub extension_map: ExtensionMap,
@@ -227,15 +227,16 @@ impl OutputPattern {
         string.contains(Self::UNIQUE_SUFFIX)
     }
 
-    pub fn fill_blanks(&self, 
-                       input_file: &Path, 
-                       extension_map: &ExtensionMap, 
-                       input_extension: &str, 
-                       tree: &Option<PathBuf>,
-                       ffmpeg_options: &Vec<FFmpegOptions>,
-                       allow_override: bool,
-                       disable_pattern_append: bool) -> Result<PathBuf, anyhow::Error> 
-    {
+    pub fn fill_blanks(
+        &self, 
+        input_file: &Path, 
+        extension_map: &ExtensionMap, 
+        input_extension: &str, 
+        tree: &Option<PathBuf>,
+        ffmpeg_options: &Vec<FFmpegOptions>,
+        allow_override: bool,
+        disable_pattern_append: bool
+    ) -> Result<PathBuf, anyhow::Error> {
         let output_pattern = if !self.has_blanks() && !disable_pattern_append {
             self.pattern.join(Self::TREE).join(Self::FILE)
         } else {
@@ -281,14 +282,12 @@ impl OutputPattern {
                 let mut o = first.to_string_lossy().replace(Self::UNIQUE_SUFFIX, "");
                 let mut num = 1;
 
-                while 
-                    (second.is_some() && Path::new(&o).exists()) ||
+                while (second.is_some() && Path::new(&o).exists()) || 
                     (second.is_none() && (
                         ffmpeg_options.iter().any(|x| get_components(&x.output_file)[i].0.eq(Path::new(&o))) || 
                         Path::new(&o).exists() 
                         // (!allow_override && Path::new(&o).exists()) // Don't know about the allow_override, feels like it should not be able to override anyway
-                    ))
-                {
+                )) {
                     o = first.to_string_lossy().replace(Self::UNIQUE_SUFFIX, &format!("_{}", num));
                     num += 1;
                 };
