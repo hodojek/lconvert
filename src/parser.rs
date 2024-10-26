@@ -5,8 +5,8 @@ use anyhow::Context;
 use crate::FFmpegOptions;
 
 // let r = r#"^((\w+)|(\w+=\w+)(,\w+=\w+)*)$"#;
-static EXTENSION_MAP_REGEX: &str = r#"^((\w+)(,\w+=\w+)*|(\w+=\w+)(,\w+=\w+)*(,\w+)?(,\w+=\w+)*)$"#;
-static DEFAULT_PATTERN: &str = "lconvert_output{{unique-suffix}}/{{tree}}/{{file}}";
+const EXTENSION_MAP_REGEX: &str = r#"^((\w+)(,\w+=\w+)*|(\w+=\w+)(,\w+=\w+)*(,\w+)?(,\w+=\w+)*)$"#;
+const DEFAULT_PATTERN: &str = "lconvert_output{{unique-suffix}}/{{tree}}/{{file}}";
 
 pub type ExtensionMap = HashMap<String, String>;
 
@@ -94,6 +94,7 @@ pub struct Arguments {
         long,
         value_name = "PATTERN",
         default_value = DEFAULT_PATTERN,
+        value_hint = ValueHint::DirPath, 
         long_help = format!(
             "Output pattern\n\n\
              A pattern is a path with optional placeholders that will be filled automaticaly.\n\
@@ -137,6 +138,24 @@ pub struct Arguments {
         default_value = "4",
     )]
     pub n_subprocesses: u32,
+
+    /// Path to ffmpeg executable
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "ffmpeg",
+        value_hint = ValueHint::FilePath, 
+    )]
+    pub ffmpeg_path: PathBuf,
+
+    /// Path to ffprobe executable
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "ffprobe",
+        value_hint = ValueHint::FilePath, 
+    )]
+    pub ffprobe_path: PathBuf,
 
     /// Disables appending {{tree}}/{{file}} to output patterns with no placeholders
     #[arg(

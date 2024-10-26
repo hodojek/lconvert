@@ -1,10 +1,14 @@
 use std::fmt::Display;
 use std::io::Error;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use std::process::{Child, Output, Stdio};
 use std::str::from_utf8;
 use anyhow::Context;
 use which::which;
+use std::sync::OnceLock;
+
+pub static FFMPEG_PATH: OnceLock<&Path> = OnceLock::new();
+pub static FFPROBE_PATH: OnceLock<&Path> = OnceLock::new();
 
 #[derive(Debug)]
 pub enum FFmpegError<'a> {
@@ -102,7 +106,7 @@ impl FFmpegProcessCompleted {
 }
 
 pub fn get_duration(file_path: &PathBuf) -> Result<Option<f64>, anyhow::Error> {
-    let child = std::process::Command::new("ffprobe")
+    let child = std::process::Command::new(FFPROBE_PATH.get().expect("Initialized this in main"))
         .args(["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1"])
         .arg(file_path)
         .stdout(Stdio::piped())
@@ -119,7 +123,7 @@ pub fn get_duration(file_path: &PathBuf) -> Result<Option<f64>, anyhow::Error> {
 }
 
 pub fn spawn_ffmpeg(options: &FFmpegOptions) -> Result<Child, Error> {
-    let child = std::process::Command::new("ffmpeg")
+    let child = std::process::Command::new(FFMPEG_PATH.get().expect("Initialized this in main"))
         .arg("-hide_banner")
         .arg(if options.allow_override {"-y"} else {"-n"})
         .args(["-loglevel", "error", "-progress", "-", "-nostats"])
@@ -133,8 +137,8 @@ pub fn spawn_ffmpeg(options: &FFmpegOptions) -> Result<Child, Error> {
     Ok(child)
 }
 
-pub fn assert_exists(executable: &str) -> Result<PathBuf, anyhow::Error> {
+pub fn assert_exists(executable: &Path) -> Result<PathBuf, anyhow::Error> {
     Ok(which(executable)
-        .with_context(|| format!("{executable} could not be found! Make sure to add '/path/to/ffmpeg/bin' to the PATH variable"))?
+        .with_context(|| format!("'{}' could not be found! Make sure to add '/path/to/ffmpeg/bin' to the PATH variable", executable.display()))?
     )
 }

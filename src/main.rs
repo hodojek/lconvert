@@ -6,7 +6,7 @@ use std::{fs::{create_dir_all, read_dir, DirEntry}, io::{BufRead, BufReader}, pa
 use anyhow::Context;
 use clap::Parser;
 use progress::{FFmpegProgress, OverallProgress};
-use ffmpeg::{assert_exists, FFmpegOptions, FFmpegProcessCompleted, FFmpegProcessStarted};
+use ffmpeg::{assert_exists, FFmpegOptions, FFmpegProcessCompleted, FFmpegProcessStarted, FFMPEG_PATH, FFPROBE_PATH};
 use parser::{Arguments, ExtensionMap, get_longest_common_path, OutputPattern};
 
 struct FFmpegProcessWithProgress {
@@ -187,8 +187,11 @@ fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses:
 fn main() -> anyhow::Result<()> {
     let args: Arguments = Arguments::parse();
 
-    assert_exists("ffmpeg")?;
-    assert_exists("ffprobe")?;
+    FFMPEG_PATH.get_or_init(|| Box::leak(args.ffmpeg_path.clone().into_boxed_path()));
+    FFPROBE_PATH.get_or_init(|| Box::leak(args.ffprobe_path.clone().into_boxed_path()));
+
+    assert_exists(FFMPEG_PATH.get().unwrap())?;
+    assert_exists(FFPROBE_PATH.get().unwrap())?;
 
     let start_time = Instant::now();
 
