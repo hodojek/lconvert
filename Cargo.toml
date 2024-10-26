@@ -1,7 +1,7 @@
 [package]
 name = "lconvert"
 description = "A cli tool for converting multiple files (with different extensions) at once"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["hodojek"]
 license = "MIT"
