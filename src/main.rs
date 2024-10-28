@@ -187,43 +187,7 @@ fn run_ffmpeg_concurrent(mut ffmpeg_options: Vec<FFmpegOptions>, n_subprocesses:
     completed_processes
 }
 
-fn main() -> anyhow::Result<()> {
-    let args: Arguments = Arguments::parse();
-
-    FFMPEG_PATH.get_or_init(|| Box::leak(args.ffmpeg_path.clone().into_boxed_path()));
-    FFPROBE_PATH.get_or_init(|| Box::leak(args.ffprobe_path.clone().into_boxed_path()));
-
-    assert_exists(FFMPEG_PATH.get().unwrap())?;
-    assert_exists(FFPROBE_PATH.get().unwrap())?;
-
-    let start_time = Instant::now();
-
-    let input_files: Vec<PathBuf> = args.get_glob_expanded_input_files();
-
-    let output_pattern = OutputPattern::new(args.output);
-
-    let ffmpeg_options: Vec<FFmpegOptions> = get_ffmpeg_options(
-        input_files, 
-        &output_pattern,
-        &args.extension_map, 
-        &args.ffmpeg_str_options,
-        args.case_sensitive, 
-        args.allow_override, 
-        args.disable_pattern_append,
-        None
-    )?;
-
-    create_hierarchy(
-        &ffmpeg_options
-    )?;
-
-    println!("Total files      :  {}", ffmpeg_options.len());
-    println!("Output directory : '{}'", get_longest_common_path(ffmpeg_options.iter().map(|x| x.output_file.clone()).collect()).unwrap_or_default().display());
-
-    let completed_processes: Vec<FFmpegProcessCompleted> = run_ffmpeg_concurrent(ffmpeg_options, args.n_subprocesses);
-
-    println!("\nDone in {:.1?}!\n", Instant::now().duration_since(start_time));
-
+fn print_errors(completed_processes: &Vec<FFmpegProcessCompleted>) {
     for completed_process in completed_processes.iter() { 
         if let Some(err) = completed_process.get_error() { 
             eprintln!("┌ Error while trying to process input file: '{}'", completed_process.options.input_file.display());
@@ -239,6 +203,48 @@ fn main() -> anyhow::Result<()> {
             completed_processes.len(), 
         );
     }
+}
+
+fn init_ffmpeg_paths(args: &Arguments) -> Result<(), anyhow::Error> {
+    FFMPEG_PATH.get_or_init(|| Box::leak(args.ffmpeg_path.clone().into_boxed_path()));
+    FFPROBE_PATH.get_or_init(|| Box::leak(args.ffprobe_path.clone().into_boxed_path()));
+
+    assert_exists(FFMPEG_PATH.get().unwrap())?;
+    assert_exists(FFPROBE_PATH.get().unwrap())?;
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    let args: Arguments = Arguments::parse();
+
+    init_ffmpeg_paths(&args)?;
+
+    let start_time = Instant::now();
+
+    let input_files: Vec<PathBuf> = args.get_glob_expanded_input_files();
+    let output_pattern = OutputPattern::new(args.output);
+
+    let ffmpeg_options: Vec<FFmpegOptions> = get_ffmpeg_options(
+        input_files, 
+        &output_pattern,
+        &args.extension_map, 
+        &args.ffmpeg_str_options,
+        args.case_sensitive, 
+        args.allow_override, 
+        args.disable_pattern_append,
+        None
+    )?;
+
+    create_hierarchy(&ffmpeg_options)?;
+
+    println!("Total files      :  {}", ffmpeg_options.len());
+    println!("Output directory : '{}'", get_longest_common_path(ffmpeg_options.iter().map(|x| x.output_file.as_path()).collect()).unwrap_or_default().display());
+
+    let completed_processes: Vec<FFmpegProcessCompleted> = run_ffmpeg_concurrent(ffmpeg_options, args.n_subprocesses);
+
+    println!("\nDone in {:.1?}!\n", Instant::now().duration_since(start_time));
+
+    print_errors(&completed_processes);
 
     if cfg!(target_os = "linux") {
         // FIXME: For some reason on linux after the prgram is done, character echo is disabled

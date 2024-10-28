@@ -321,7 +321,7 @@ impl OutputPattern {
     }
 }
 
-pub fn get_longest_common_path(mut paths: Vec<PathBuf>) -> Option<PathBuf> {
+pub fn get_longest_common_path(mut paths: Vec<&Path>) -> Option<PathBuf> {
     if paths.is_empty() {
         return None;
     }
